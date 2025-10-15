@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>The Perfect Cycling Snack Stops — Utrecht</title>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    :root{
+      --warm:#E8D5B7; /* warm beige */
+      --cozy:#8C6A53;  /* brown accent */
+      --accent:#2F6F44; /* green accent for nature */
+      --bg:#fffdfa;
+      --muted:#6b6b6b;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    body{margin:0;background:var(--bg);color:#222}
+    header{display:flex;align-items:center;gap:16px;padding:18px 22px;background:linear-gradient(90deg,var(--warm),#fff);box-shadow:0 2px 10px rgba(0,0,0,0.04)}
+    .logo{display:flex;align-items:center;gap:10px}
+    .logo .dot{width:36px;height:36px;border-radius:8px;background:var(--cozy);display:flex;align-items:center;justify-content:center;color:white;font-weight:700}
+    h1{margin:0;font-size:18px}
+    main{display:grid;grid-template-columns:360px 1fr;gap:18px;padding:18px}
+    /* sidebar */
+    .sidebar{background:white;border-radius:12px;padding:14px;box-shadow:0 6px 20px rgba(0,0,0,0.04);height:calc(100vh - 110px);overflow:auto}
+    .search{display:flex;gap:8px;margin-bottom:12px}
+    .search input{flex:1;padding:10px;border:1px solid #eee;border-radius:8px}
+    .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .chip{padding:6px 10px;background:var(--warm);border-radius:999px;font-size:13px;color:var(--cozy);cursor:pointer}
+    .stop-list{display:flex;flex-direction:column;gap:10px}
+    .stop-card{padding:10px;border-radius:10px;border:1px solid #f0e9e0;background:linear-gradient(180deg, #fff, #fffdfa);cursor:pointer}
+    .stop-card h3{margin:0;font-size:15px;color:var(--cozy)}
+    .stop-card p{margin:6px 0 0 0;color:var(--muted);font-size:13px}
+
+    /* map area */
+    #map{height:calc(100vh - 110px);border-radius:12px;overflow:hidden}
+
+    footer{padding:14px;text-align:center;color:var(--muted);font-size:13px}
+
+    /* modal / detail */
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;padding:18px}
+    .modal .panel{width:min(900px,98%);background:white;border-radius:12px;padding:16px;box-shadow:0 20px 50px rgba(0,0,0,0.35);max-height:90vh;overflow:auto}
+    .panel .media{display:grid;grid-template-columns:1fr 280px;gap:12px}
+    .slider{position:relative;border-radius:10px;overflow:hidden}
+    .slides{display:flex;transition:transform .35s ease}
+    .slides img{width:100%;height:260px;object-fit:cover}
+    .thumbs{display:flex;gap:8px;margin-top:8px}
+    .thumbs img{width:60px;height:40px;object-fit:cover;border-radius:6px}
+    .meta{padding:6px}
+    .meta h2{margin:0;color:var(--cozy)}
+    .meta .row{display:flex;gap:10px;align-items:center;margin-top:8px}
+    .btn{display:inline-block;padding:8px 12px;border-radius:8px;background:var(--accent);color:white;text-decoration:none}
+
+    /* responsive */
+    @media (max-width:900px){main{grid-template-columns:1fr} .sidebar{height:auto} #map{height:420px}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo"><div class="dot">CS</div><div><h1>The Perfect Cycling Snack Stops — Utrecht</h1><div style="font-size:12px;color:var(--muted)">Warm & cozy × Adventure — interactive guide</div></div></div>
+  </header>
+
+  <main>
+    <aside class="sidebar">
+      <div class="search"><input id="q" placeholder="Search stops or routes" /></div>
+      <div class="filters">
+        <div class="chip" data-filter="all">All</div>
+        <div class="chip" data-filter="view">Best View</div>
+        <div class="chip" data-filter="quick">Quick Energy</div>
+        <div class="chip" data-filter="budget">Budget</div>
+        <div class="chip" data-filter="fav">Cyclist Favorite</div>
+      </div>
+      <div class="stop-list" id="list"></div>
+      <hr style="margin:12px 0;border:none;border-top:1px solid #f0e6db">
+      <div style="font-size:13px;color:var(--muted)">Tips: Click any pin on the map or a stop card to see full details. Use the filter chips to narrow results.</div>
+    </aside>
+
+    <section>
+      <div id="map"></div>
+    </section>
+  </main>
+
+  <div class="modal" id="modal">
+    <div class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:center"><div></div><button id="close" style="background:none;border:none;font-size:18px;cursor:pointer">✕</button></div>
+      <div class="media">
+        <div>
+          <div class="slider" id="slider">
+            <div class="slides" id="slides"></div>
+          </div>
+          <div class="thumbs" id="thumbs"></div>
+        </div>
+        <aside class="meta">
+          <h2 id="m-title">Stop title</h2>
+          <div class="row"><strong id="m-category" style="color:var(--accent)"></strong></div>
+          <p id="m-desc" style="margin-top:8px;color:var(--muted)"></p>
+          <div style="margin-top:12px">
+            <div><strong>Price range:</strong> <span id="m-price"></span></div>
+            <div><strong>Seating:</strong> <span id="m-seat"></span></div>
+            <div><strong>Menu highlights:</strong> <span id="m-menu"></span></div>
+            <div style="margin-top:8px"><a id="m-link" class="btn" target="_blank">Open in Google Maps</a></div>
+            <div style="margin-top:10px"><a id="m-more" class="btn" style="background:var(--cozy)">View in PDF (placeholder)</a></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <footer>Created for Personal Project — Cycling Snack Stops Utrecht. Built as a prototype. Replace markers with verified coordinates before publishing.</footer>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // ===== DATA: Replace lat/lng with verified coordinates when available =====
+    const STOPS = [
+      {id:1,name:'Theehuis Rhijnauwen',category:'view',lat:52.0615,lng:5.1907,price:'€4–€15',seat:'Large outdoor terrace',menu:'Pancakes • Soups • Tea',desc:'A classic teahouse by the Kromme Rijn with wide terraces and leafy views — perfect after a forest ride.'},
+      {id:2,name:'De Veldkeuken',category:'view',lat:52.0673,lng:5.1749,price:'€4–€18',seat:'Indoor + terrace',menu:'Fresh bread • Salads • Coffee',desc:'Rustic bakery-restaurant serving fresh breads and seasonal lunches among the estates.'},
+      {id:3,name:'Parkcafé Buiten',category:'view',lat:52.0783,lng:5.1654,price:'€3–€12',seat:'Outdoor seating',menu:'Toasts • Pastries',desc:'Casual park café surrounded by woods; a shady stop for light lunches and smoothies.'},
+      {id:4,name:'30ML Coffee & Food',category:'quick',lat:52.0907,lng:5.1214,price:'€2.5–€10',seat:'Indoor + small terrace',menu:'Cappuccino • Croissants • Sandwiches',desc:'Reliable specialty coffee brand with fast service—perfect for quick refuels.'},
+      {id:5,name:'Bici Bikes & Coffee',category:'quick',lat:52.0952,lng:5.1001,price:'€2–€8',seat:'Counter + benches',menu:'Coffee • Energy bars',desc:'Bike shop + espresso counter — ideal for cyclists who need a fast coffee and minor repairs.'},
+      {id:6,name:'Blackbird Coffee & Vintage',category:'quick',lat:52.0909,lng:5.1222,price:'€2.5–€8',seat:'Canal terrace',menu:'Espresso • Cakes • Sandwiches',desc:'Canal-side vintage coffee bar with relaxed vibes—great mid-ride stop.'},
+      {id:7,name:'Dagger Coffee',category:'budget',lat:52.0888,lng:5.1210,price:'€2–€6',seat:'Few indoor seats',menu:'Espresso • Pastries',desc:'Small roastery known for careful brewing and a minimalist interior.'},
+      {id:8,name:'The Village Coffee & Music',category:'budget',lat:52.0944,lng:5.1190,price:'€3–€10',seat:'Indoor',menu:'Latte • Toasties',desc:'Indie coffee spot with a music-store vibe—ideal for creative breaks.'},
+      {id:9,name:"'t Oude Pothuys",category:'budget',lat:52.0896,lng:5.1219,price:'€5–€15',seat:'Outdoor by water',menu:'Sandwiches • Soups',desc:'Lively pub on the Oudegracht with canal terrace and local music.'},
+      {id:10,name:'Broei',category:'budget',lat:52.0875,lng:5.1262,price:'€2–€10',seat:'Indoor + terrace',menu:'Vegan pastries • Salads',desc:'Bright vegetarian spot with house plants and healthy snacks.'},
+      {id:11,name:'De Proloog',category:'fav',lat:52.0419,lng:5.5689,price:'€6–€18',seat:'Large terrace',menu:'Lunch bowls • Cakes',desc:'Cyclist-famous café near Amerongen—perfect for long rides and climbs.'},
+      {id:12,name:'Restaurant Vroeg',category:'fav',lat:52.0923,lng:5.1765,price:'€5–€20',seat:'Garden terrace',menu:'Breakfast plates • Salads',desc:'Bakery-restaurant with fresh bread and family feel near Amelisweerd.'},
+      {id:13,name:'Parkcafé Ice Stop',category:'fav',lat:52.0791,lng:5.1660,price:'€2–€6',seat:'Benches',menu:'Ice cream • Drinks',desc:'Seasonal ice cream and cold drinks—perfect for summer cooldowns.'},
+      {id:14,name:'Café Olivier',category:'fav',lat:52.0910,lng:5.1251,price:'€5–€20',seat:'Indoor + waterfront',menu:'Fries • Beers',desc:'Dramatic converted church serving hearty snacks and Belgian beer.'},
+      {id:15,name:'OHØJ Coffee Roasting',category:'special',lat:52.0872,lng:5.1217,price:'€2–€6',seat:'Few seats',menu:'Espresso • Filter coffee',desc:'Small roastery with precision espresso and Scandinavian design.'},
+      {id:16,name:'Cornelis / Koffie Leute',category:'special',lat:52.0916,lng:5.1218,price:'€2.5–€8',seat:'Varies',menu:'Espresso',desc:'Cluster of independent cafés good for a coffee crawl.'},
+      {id:17,name:'Vredenburg Market',category:'special',lat:52.0913,lng:5.1170,price:'€1–€8',seat:'Public benches',menu:'Stroopwafels • Cheese',desc:'Weekend market with local snacks and treats—perfect for central loops.'},
+      {id:18,name:'Rocking Chair Café',category:'budget',lat:52.0965,lng:5.1212,price:'€3–€10',seat:'Indoor + terrace',menu:'Cakes • Tea',desc:'Chill neighborhood café with homemade cakes—great afternoon stop.'}
+    ];
+
+    // Initialize map
+    const map = L.map('map').setView([52.0907, 5.1214], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      attribution:'© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Layers for categories
+    const layers = {
+      view: L.layerGroup().addTo(map),
+      quick: L.layerGroup().addTo(map),
+      budget: L.layerGroup().addTo(map),
+      fav: L.layerGroup().addTo(map),
+      special: L.layerGroup().addTo(map)
+    };
+
+    // helper icon
+    function makeIcon(color){
+      return L.divIcon({className:'custom-pin',html:`<div style="background:${color};width:18px;height:18px;border-radius:6px;border:2px solid white"></div>` ,iconSize:[24,24]});
+    }
+
+    const icons = {view:'#2F6F44',quick:'#F2A541',budget:'#B07B5A',fav:'#6E3E8C',special:'#4A90E2'};
+
+    // add markers and list
+    const listEl = document.getElementById('list');
+    STOPS.forEach(stop=>{
+      const marker = L.marker([stop.lat, stop.lng],{icon:makeIcon(icons[stop.category]||'#aaa')}).addTo(layers[stop.category]||layers.special);
+      marker.bindPopup(`<strong>${stop.name}</strong><br>${stop.desc}`);
+      marker.on('click',()=>openModal(stop));
+
+      const card = document.createElement('div');card.className='stop-card';
+      card.innerHTML = `<h3>${stop.name}</h3><p>${stop.desc}</p>`;
+      card.onclick = ()=>{map.setView([stop.lat,stop.lng],15);openModal(stop)};
+      listEl.appendChild(card);
+    });
+
+    // filtering UI
+    document.querySelectorAll('.chip').forEach(chip=>chip.onclick=function(){
+      const f = chip.dataset.filter;
+      document.querySelectorAll('.chip').forEach(c=>c.style.opacity=0.6);
+      chip.style.opacity=1;
+      if(f==='all'){
+        map.eachLayer((lyr)=>{}); // noop
+        Object.values(layers).forEach(l=>map.addLayer(l));
+      } else {
+        Object.keys(layers).forEach(k=>{ if(k===f) map.addLayer(layers[k]); else map.removeLayer(layers[k]); });
+      }
+    });
+
+    // search
+    document.getElementById('q').addEventListener('input',e=>{
+      const q=e.target.value.toLowerCase();
+      listEl.innerHTML='';
+      STOPS.filter(s=>s.name.toLowerCase().includes(q) || s.desc.toLowerCase().includes(q)).forEach(stop=>{
+        const card = document.createElement('div');card.className='stop-card';
+        card.innerHTML = `<h3>${stop.name}</h3><p>${stop.desc}</p>`;
+        card.onclick = ()=>{map.setView([stop.lat,stop.lng],15);openModal(stop)};
+        listEl.appendChild(card);
+      });
+    });
+
+    // modal logic
+    const modal = document.getElementById('modal');
+    const slidesEl = document.getElementById('slides');
+    const thumbsEl = document.getElementById('thumbs');
+    let slideIndex=0;
+    function openModal(stop){
+      document.getElementById('m-title').textContent=stop.name;
+      document.getElementById('m-category').textContent=stop.category.toUpperCase();
+      document.getElementById('m-desc').textContent=stop.desc;
+      document.getElementById('m-price').textContent=stop.price;
+      document.getElementById('m-seat').textContent=stop.seat;
+      document.getElementById('m-menu').textContent=stop.menu;
+      document.getElementById('m-link').href=`https://www.google.com/maps/search/?api=1&query=${stop.lat},${stop.lng}`;
+      document.getElementById('m-more').href='#';
+
+      // images placeholder (you should replace with real urls)
+      const imgs = [
+        `https://source.unsplash.com/800x600/?cafe,utrecht,${stop.name}`,
+        `https://source.unsplash.com/800x600/?coffee,${stop.name}`
+      ];
+      slidesEl.innerHTML='';thumbsEl.innerHTML='';
+      imgs.forEach((u,i)=>{
+        const img = document.createElement('img');img.src=u;slidesEl.appendChild(img);
+        const t = document.createElement('img');t.src=u;thumbsEl.appendChild(t);
+        t.onclick=()=>{slideIndex=i;updateSlider();};
+      });
+      updateSlider();
+
+      modal.style.display='flex';
+    }
+    function updateSlider(){
+      const slides = document.querySelectorAll('#slides img');
+      if(slides.length===0) return;
+      slidesEl.style.transform=`translateX(-${slideIndex * 100}%)`;
+    }
+    document.getElementById('close').onclick=()=>{modal.style.display='none';}
+
+    // initial list fill
+    document.getElementById('q').dispatchEvent(new Event('input'));
+
+  </script>
+</body>
+</html>
