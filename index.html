@@ -1,166 +1,239 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Utrecht Cycling Snack Stops Guide</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Perfect Cycling Snack Stops in Utrecht</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     body {
       margin: 0;
       font-family: 'Poppins', sans-serif;
-      background: #fdfaf5;
+      background: #fff8f0;
       color: #333;
     }
-    #map {
-      height: 100vh;
-      width: 100%;
-    }
-    .info-card {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      width: 350px;
-      background: #fff8f0;
-      border-radius: 16px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-      overflow: hidden;
-      display: none;
-      flex-direction: column;
+    header {
+      position: sticky;
+      top: 0;
+      background: #f4d8b8;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 25px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
       z-index: 1000;
-      animation: fadeIn 0.3s ease-in-out;
     }
-    @keyframes fadeIn {
-      from {opacity: 0; transform: translateY(-10px);}
-      to {opacity: 1; transform: translateY(0);}
-    }
-    .card-header {
-      background: #ffead6;
-      padding: 10px 15px;
-    }
-    .card-header h2 {
+    header h1 {
       margin: 0;
-      font-size: 1.3rem;
+      font-size: 1.6rem;
     }
-    .stars {
-      color: #f5b700;
-      margin-top: 5px;
+    .menu {
+      position: relative;
     }
-    .card-content {
-      padding: 15px;
+    .menu button {
+      background: #d4a574;
+      border: none;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
     }
-    .card-content p {
-      margin: 6px 0;
+    .menu-list {
+      display: none;
+      position: absolute;
+      top: 45px;
+      right: 0;
+      background: #fff8f0;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      width: 220px;
+      overflow: hidden;
+      z-index: 9999;
     }
-    .carousel img {
+    .menu-list a {
+      display: block;
+      padding: 10px 15px;
+      text-decoration: none;
+      color: #333;
+      border-bottom: 1px solid #f0e0c9;
+    }
+    .menu-list a:hover {
+      background: #f4d8b8;
+    }
+    .cafe-section {
+      padding: 40px 25px;
+      border-bottom: 1px solid #f1e0c9;
+    }
+    .cafe-section h2 {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+      color: #a2673a;
+    }
+    .cafe-section img {
       width: 100%;
-      height: 180px;
-      object-fit: cover;
+      border-radius: 12px;
+      margin: 10px 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
     iframe {
       width: 100%;
-      height: 200px;
+      height: 250px;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+    #map-section {
+      padding: 40px 0;
+      background: #fdf6ee;
+    }
+    #map {
+      height: 500px;
+      width: 90%;
+      margin: auto;
+      border-radius: 16px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .info-card {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 350px;
+      background: #fff8f0;
+      border-radius: 16px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      display: none;
+      z-index: 1000;
+      overflow: hidden;
+      flex-direction: column;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    .close-btn {
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      background: transparent;
       border: none;
-      border-top: 1px solid #ddd;
-    }
-    .map-link {
-      text-align: center;
-      padding: 10px;
-      background: #f4d8b8;
-    }
-    .map-link a {
+      font-size: 1.4rem;
+      cursor: pointer;
       color: #333;
-      text-decoration: none;
-      font-weight: 600;
+    }
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(10px);}
+      to {opacity: 1; transform: translateY(0);}
     }
   </style>
 </head>
 <body>
-  <div id="map"></div>
+  <header>
+    <h1>The Perfect Cycling Snack Stops in Utrecht</h1>
+    <div class="menu">
+      <button onclick="toggleMenu()">Explore Stops</button>
+      <div class="menu-list" id="menuList"></div>
+    </div>
+  </header>
+
+  <section id="cafe-list"></section>
+  <section id="map-section">
+    <h2 style="text-align:center; color:#a2673a;">Explore All Stops on the Map</h2>
+    <div id="map"></div>
+  </section>
+
   <div class="info-card" id="infoCard">
-    <div class="carousel" id="carousel"></div>
-    <div class="card-header">
-      <h2 id="placeName"></h2>
-      <div class="stars" id="ratingStars"></div>
+    <button class="close-btn" onclick="closeCard()">×</button>
+    <div style="padding:15px;">
+      <h3 id="placeName"></h3>
+      <div id="ratingStars"></div>
       <p id="hours"></p>
-    </div>
-    <div class="card-content">
       <p id="description"></p>
-      <p><strong>Menu:</strong> <span id="menu"></span></p>
       <p><strong>Phone:</strong> <span id="phone"></span></p>
+      <iframe id="videoFrame" allow="autoplay; encrypted-media" allowfullscreen></iframe>
     </div>
-    <iframe id="videoFrame" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-    <div class="map-link"><a id="mapsLink" target="_blank">View on Google Maps</a></div>
   </div>
 
   <script>
+    const STOPS = [
+      {
+        name: 'De Koffieboetiek',
+        rating: 4.6,
+        hours: '8:00 - 18:00',
+        description: 'A cozy café near the canals known for great cappuccinos and local pastries.',
+        menu: 'Coffee, croissants, sandwiches',
+        phone: '+31 30 123 4567',
+        images: ['https://source.unsplash.com/800x500/?coffee,utrecht'],
+        video: 'https://www.youtube.com/embed/Scxs7L0vhZ4',
+        coords: [52.0886, 5.1124]
+      },
+      {
+        name: 'Vroeg Bunnik',
+        rating: 4.8,
+        hours: '7:30 - 17:00',
+        description: 'A countryside gem on the edge of Utrecht—perfect for a mid-ride brunch.',
+        menu: 'Pancakes, smoothies, fresh juices',
+        phone: '+31 30 654 7890',
+        images: ['https://source.unsplash.com/800x500/?brunch,cafe'],
+        video: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+        coords: [52.0609, 5.1764]
+      }
+    ];
+
+    const cafeList = document.getElementById('cafe-list');
+    const menuList = document.getElementById('menuList');
+
+    STOPS.forEach(stop => {
+      const div = document.createElement('div');
+      div.className = 'cafe-section';
+      div.id = stop.name.replace(/\s+/g, '-');
+      div.innerHTML = `
+        <h2>${stop.name}</h2>
+        <p><strong>Rating:</strong> ${stop.rating} ⭐</p>
+        <p>${stop.description}</p>
+        <p><strong>Opening Hours:</strong> ${stop.hours}</p>
+        <p><strong>Phone:</strong> ${stop.phone}</p>
+        <img src="${stop.images[0]}" alt="${stop.name}">
+        <iframe src="${stop.video}"></iframe>
+      `;
+      cafeList.appendChild(div);
+
+      const link = document.createElement('a');
+      link.href = `#${div.id}`;
+      link.textContent = stop.name;
+      menuList.appendChild(link);
+    });
+
     const map = L.map('map').setView([52.0907, 5.1214], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '© OpenStreetMap'
     }).addTo(map);
 
-    const STOPS = [
-      {
-        name: 'De Koffieboetiek',
-        coords: [52.0886, 5.1124],
-        rating: 4.6,
-        hours: '8:00 - 18:00',
-        description: 'A cozy café near the canals known for great cappuccinos and local pastries.',
-        menu: 'Coffee, croissants, sandwiches',
-        phone: '+31 30 123 4567',
-        images: [
-          'https://source.unsplash.com/600x400/?coffee,utrecht',
-          'https://source.unsplash.com/600x400/?cafe,interior'
-        ],
-        video: 'https://www.youtube.com/embed/Scxs7L0vhZ4',
-        link: 'https://goo.gl/maps/example1'
-      },
-      {
-        name: 'Vroeg Bunnik',
-        coords: [52.0609, 5.1764],
-        rating: 4.8,
-        hours: '7:30 - 17:00',
-        description: 'A countryside gem on the edge of Utrecht—perfect for a mid-ride brunch.',
-        menu: 'Pancakes, smoothies, fresh juices',
-        phone: '+31 30 654 7890',
-        images: [
-          'https://source.unsplash.com/600x400/?brunch,cafe',
-          'https://source.unsplash.com/600x400/?bike,coffee'
-        ],
-        video: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-        link: 'https://goo.gl/maps/example2'
-      }
-      // Add 16 more cafés following this pattern.
-    ];
-
-    function generateStars(rating) {
-      const full = Math.floor(rating);
-      const half = rating - full >= 0.5 ? 1 : 0;
-      return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(5 - full - half);
-    }
-
     STOPS.forEach(stop => {
       const marker = L.marker(stop.coords).addTo(map);
-      marker.on('click', () => {
-        document.getElementById('infoCard').style.display = 'flex';
-        document.getElementById('placeName').textContent = stop.name;
-        document.getElementById('ratingStars').textContent = generateStars(stop.rating) + ` (${stop.rating})`;
-        document.getElementById('hours').textContent = `⏰ ${stop.hours}`;
-        document.getElementById('description').textContent = stop.description;
-        document.getElementById('menu').textContent = stop.menu;
-        document.getElementById('phone').textContent = stop.phone;
-        document.getElementById('mapsLink').href = stop.link;
-
-        // Load carousel images
-        const carousel = document.getElementById('carousel');
-        carousel.innerHTML = stop.images.map(img => `<img src="${img}" alt="${stop.name}">`).join('');
-
-        // Load video
-        document.getElementById('videoFrame').src = stop.video;
-      });
+      marker.on('click', () => openCard(stop));
     });
+
+    function toggleMenu() {
+      const menu = document.getElementById('menuList');
+      menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function openCard(stop) {
+      const card = document.getElementById('infoCard');
+      card.style.display = 'flex';
+      document.getElementById('placeName').textContent = stop.name;
+      document.getElementById('ratingStars').textContent = `⭐ ${stop.rating}`;
+      document.getElementById('hours').textContent = `⏰ ${stop.hours}`;
+      document.getElementById('description').textContent = stop.description;
+      document.getElementById('phone').textContent = stop.phone;
+      document.getElementById('videoFrame').src = stop.video;
+    }
+
+    function closeCard() {
+      const card = document.getElementById('infoCard');
+      card.style.display = 'none';
+      document.getElementById('videoFrame').src = '';
+    }
   </script>
 </body>
 </html>
