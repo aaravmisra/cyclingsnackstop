@@ -7,233 +7,466 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
-    body {
-      margin: 0;
-      font-family: 'Poppins', sans-serif;
-      background: #fff8f0;
-      color: #333;
+    :root{
+      --warm:#fff7ef;
+      --accent:#a2673a;
+      --muted:#6b6b6b;
+      --card:#fff8f0;
     }
-    header {
-      position: sticky;
-      top: 0;
-      background: #f4d8b8;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 15px 25px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      z-index: 1000;
-    }
-    header h1 {
-      margin: 0;
-      font-size: 1.6rem;
-    }
-    .menu {
-      position: relative;
-    }
-    .menu button {
-      background: #d4a574;
-      border: none;
-      color: white;
-      padding: 10px 16px;
-      border-radius: 8px;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-    .menu-list {
-      display: none;
-      position: absolute;
-      top: 45px;
-      right: 0;
-      background: #fff8f0;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-      width: 220px;
-      overflow: hidden;
-      z-index: 9999;
-    }
-    .menu-list a {
-      display: block;
-      padding: 10px 15px;
-      text-decoration: none;
-      color: #333;
-      border-bottom: 1px solid #f0e0c9;
-    }
-    .menu-list a:hover {
-      background: #f4d8b8;
-    }
-    .cafe-section {
-      padding: 40px 25px;
-      border-bottom: 1px solid #f1e0c9;
-    }
-    .cafe-section h2 {
-      font-size: 1.5rem;
-      margin-bottom: 10px;
-      color: #a2673a;
-    }
-    .cafe-section img {
-      width: 100%;
-      border-radius: 12px;
-      margin: 10px 0;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    iframe {
-      width: 100%;
-      height: 250px;
-      border-radius: 10px;
-      margin-top: 10px;
-    }
-    #map-section {
-      padding: 40px 0;
-      background: #fdf6ee;
-    }
-    #map {
-      height: 500px;
-      width: 90%;
-      margin: auto;
-      border-radius: 16px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    }
-    .info-card {
-      position: absolute;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 350px;
-      background: #fff8f0;
-      border-radius: 16px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      display: none;
-      z-index: 1000;
-      overflow: hidden;
-      flex-direction: column;
-      animation: fadeIn 0.3s ease-in-out;
-    }
-    .close-btn {
-      position: absolute;
-      top: 5px;
-      right: 10px;
-      background: transparent;
-      border: none;
-      font-size: 1.4rem;
-      cursor: pointer;
-      color: #333;
-    }
-    @keyframes fadeIn {
-      from {opacity: 0; transform: translateY(10px);}
-      to {opacity: 1; transform: translateY(0);}
-    }
+    body{margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;background:var(--warm);color:#222}
+    header{position:sticky;top:0;background:var(--card);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f0e0c9;z-index:10000}
+    header h1{margin:0;font-size:1.2rem;color:var(--accent)}
+    .menu{position:relative}
+    .menu button{background:var(--accent);color:white;border:none;padding:10px 14px;border-radius:8px;cursor:pointer}
+    .menu-list{display:none;position:absolute;right:0;top:44px;background:white;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.12);width:260px;max-height:60vh;overflow:auto}
+    .menu-list a{display:block;padding:10px 12px;border-bottom:1px solid #f3e6d6;text-decoration:none;color:#333}
+    .menu-list a:hover{background:#fbefe0}
+
+    main{max-width:1100px;margin:18px auto;padding:0 16px}
+    .intro{background:linear-gradient(180deg,#fff,#fff8f0);padding:20px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.04);margin-bottom:18px}
+    .intro p{margin:8px 0;color:var(--muted)}
+
+    /* cafe list */
+    .cafe-section{padding:24px;background:white;border-radius:12px;margin-bottom:14px;box-shadow:0 6px 20px rgba(0,0,0,0.04);display:grid;grid-template-columns:1fr 360px;gap:18px}
+    .cafe-main h2{margin:0;color:var(--accent)}
+    .meta{color:var(--muted);font-size:14px;margin-top:8px}
+    .cafe-media img{width:100%;border-radius:10px;object-fit:cover}
+    .media-slider{position:relative;border-radius:10px;overflow:hidden}
+    .slides{display:flex;transition:transform .35s ease}
+    .slide{min-width:100%;box-sizing:border-box}
+    .slide img, .slide iframe{width:100%;height:220px;object-fit:cover;border:0}
+    .slider-nav{position:absolute;top:45%;left:0;right:0;display:flex;justify-content:space-between;padding:0 8px}
+    .nav-btn{background:rgba(255,255,255,0.85);border:none;padding:6px 10px;border-radius:8px;cursor:pointer}
+
+    /* map */
+    #map-section{padding:28px 0}
+    #map{height:560px;border-radius:12px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,0.08)}
+
+    /* mini hover card for map markers */
+    .mini-card{position:absolute;pointer-events:none;background:var(--card);padding:10px;border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,0.12);display:none;z-index:20000;width:260px}
+    .mini-card h4{margin:0;color:var(--accent);font-size:15px}
+    .mini-card p{margin:6px 0;color:var(--muted);font-size:13px}
+
+    /* info popup (bottom) */
+    .info-popup{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;background:white;border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,0.25);width:360px;z-index:15000;display:none}
+    .info-popup .head{padding:12px;border-bottom:1px solid #f2e7d8;background:linear-gradient(90deg,#fff6ef,#fff)}
+    .info-popup .body{padding:12px}
+    .close-btn{position:absolute;right:10px;top:6px;background:transparent;border:none;font-size:20px;cursor:pointer}
+
+    /* responsive */
+    @media (max-width:900px){.cafe-section{grid-template-columns:1fr;}.media-slider .slide iframe,.media-slider .slide img{height:200px}.info-popup{width:92%}}
   </style>
 </head>
 <body>
   <header>
-    <h1>The Perfect Cycling Snack Stops in Utrecht</h1>
+    <h1>The Perfect Cycling Snack Stops — Utrecht</h1>
     <div class="menu">
       <button onclick="toggleMenu()">Explore Stops</button>
       <div class="menu-list" id="menuList"></div>
     </div>
   </header>
 
-  <section id="cafe-list"></section>
-  <section id="map-section">
-    <h2 style="text-align:center; color:#a2673a;">Explore All Stops on the Map</h2>
-    <div id="map"></div>
-  </section>
+  <main>
+    <section class="intro">
+      <h2 style="margin:0;color:var(--accent)">A local cycling guide</h2>
+      <p>I created this guide for cyclists who want great snack stops, quick coffees, and scenic pauses while riding around Utrecht. Below you'll find 18 of the best stops — each section includes a longer description, menu highlights, opening hours, and a media slider (images + optional video). Scroll down to explore the interactive map that gathers all stops in one place.</p>
+    </section>
 
-  <div class="info-card" id="infoCard">
-    <button class="close-btn" onclick="closeCard()">×</button>
-    <div style="padding:15px;">
-      <h3 id="placeName"></h3>
-      <div id="ratingStars"></div>
-      <p id="hours"></p>
-      <p id="description"></p>
-      <p><strong>Phone:</strong> <span id="phone"></span></p>
-      <iframe id="videoFrame" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-    </div>
+    <section id="cafe-list"></section>
+
+    <section id="map-section">
+      <h2 style="text-align:center;color:var(--accent);margin-bottom:12px">Interactive Map — all stops</h2>
+      <div id="map"></div>
+      <div class="mini-card" id="miniCard"><h4 id="miniTitle"></h4><p id="miniDesc"></p></div>
+    </section>
+  </main>
+
+  <div class="info-popup" id="infoPopup">
+    <button class="close-btn" onclick="closeInfo()">×</button>
+    <div class="head"><strong id="popupTitle"></strong><div id="popupMeta" style="font-size:13px;color:var(--muted)"></div></div>
+    <div class="body"><div id="popupBody"></div></div>
   </div>
 
   <script>
+    // ---------------- DATA: 18 stops (placeholder images/videos) ----------------
     const STOPS = [
       {
-        name: 'De Koffieboetiek',
-        rating: 4.6,
-        hours: '8:00 - 18:00',
-        description: 'A cozy café near the canals known for great cappuccinos and local pastries.',
-        menu: 'Coffee, croissants, sandwiches',
-        phone: '+31 30 123 4567',
-        images: ['https://source.unsplash.com/800x500/?coffee,utrecht'],
-        video: 'https://www.youtube.com/embed/Scxs7L0vhZ4',
-        coords: [52.0886, 5.1124]
+        id:1,
+        name:'Theehuis Rhijnauwen',
+        coords:[52.0615,5.1907],
+        rating:4.6,
+        hours:'9:00 - 17:00',
+        phone:'Check website',
+        menu:'Pancakes • Soups • Homemade cakes',
+        video:'',
+        images:[
+          'https://source.unsplash.com/900x600/?teahouse,park',
+          'https://source.unsplash.com/900x600/?pancake,tea'
+        ],
+        desc:`A classic tea-house tucked beside the Kromme Rijn river. Theehuis Rhijnauwen sits in a pocket of green where riders slow down and soak in water views. It serves generous pancakes, warming soups and a wide selection of teas. The terrace is shaded in summer and the walk to the river is perfect for stretching after a long ride.`
       },
       {
-        name: 'Vroeg Bunnik',
-        rating: 4.8,
-        hours: '7:30 - 17:00',
-        description: 'A countryside gem on the edge of Utrecht—perfect for a mid-ride brunch.',
-        menu: 'Pancakes, smoothies, fresh juices',
-        phone: '+31 30 654 7890',
-        images: ['https://source.unsplash.com/800x500/?brunch,cafe'],
-        video: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-        coords: [52.0609, 5.1764]
+        id:2,
+        name:'De Veldkeuken',
+        coords:[52.0673,5.1749],
+        rating:4.5,
+        hours:'8:00 - 16:00',
+        phone:'Check website',
+        menu:'Fresh bread • Sandwiches • Salad bowls',
+        video:'',
+        images:[
+          'https://source.unsplash.com/900x600/?bakery,field',
+          'https://source.unsplash.com/900x600/?bread,bakery'
+        ],
+        desc:`A rustic bakery-restaurant hidden between estate fields. De Veldkeuken focuses on seasonal ingredients and freshly baked breads, making it a satisfying stop for cyclists who appreciate quality local produce. The interior is simple and the terrace looks over small pastures — a lovely place to recharge on a countryside loop.`
+      },
+      {
+        id:3,
+        name:'Parkcafé Buiten',
+        coords:[52.0783,5.1654],
+        rating:4.4,
+        hours:'10:00 - 18:00',
+        phone:'Check website',
+        menu:'Toasts • Smoothies • Pastries',
+        video:'',
+        images:[
+          'https://source.unsplash.com/900x600/?park,cafe',
+          'https://source.unsplash.com/900x600/?coffee,park'
+        ],
+        desc:`Parkcafé Buiten sits right at the edge of a shaded estate and is known for its relaxed terrace and light menu. Cyclists stop here for smoothies, toasted sandwiches and a quiet atmosphere away from busy streets. It’s an excellent mid-ride pause where birdsong replaces city noise.`
+      },
+      {
+        id:4,
+        name:'30ML Coffee & Food',
+        coords:[52.0907,5.1214],
+        rating:4.3,
+        hours:'07:30 - 17:30',
+        phone:'Check website',
+        menu:'Coffee • Croissants • Breakfast bowls',
+        video:'',
+        images:[
+          'https://source.unsplash.com/900x600/?coffee,shop',
+          'https://source.unsplash.com/900x600/?espresso,cafe'
+        ],
+        desc:`30ML is a reliable specialty coffee brand with multiple locations around Utrecht. It’s a perfect quick stop for riders who want excellent coffee without a long break — think fast service, well-brewed espresso and fresh pastries. Because of its central locations, it fits easily into city loops.`
+      },
+      {
+        id:5,
+        name:'Bici Bikes & Coffee',
+        coords:[52.0952,5.1001],
+        rating:4.6,
+        hours:'09:00 - 18:00',
+        phone:'Check website',
+        menu:'Coffee • Energy bars • Pastries',
+        video:'',
+        images:[
+          'https://source.unsplash.com/900x600/?bicycle,shop',
+          'https://source.unsplash.com/900x600/?coffee,bike'
+        ],
+        desc:`Bici is a hybrid bike shop and café — ideal for riders who might need a quick repair and a coffee at the same time. The space is lively with cycling conversations, and their staff are friendly to both tourists and local commuters. Expect a compact menu and a helpful atmosphere.`
+      },
+      {
+        id:6,
+        name:'Blackbird Coffee & Vintage',
+        coords:[52.0909,5.1222],
+        rating:4.5,
+        hours:'08:00 - 18:00',
+        phone:'Check website',
+        menu:'Espresso • Cakes • Sandwiches',
+        video:'',
+        images:[
+          'https://source.unsplash.com/900x600/?vintage,cafe',
+          'https://source.unsplash.com/900x600/?canal,cafe'
+        ],
+        desc:`Located on the Oudegracht, Blackbird has a vintage flair and canal-side seating that captures Utrecht’s charm. It’s a nice pick-me-up stop for city riders — coffee is strong, pastries are homemade and the atmosphere is relaxed. Outdoor seating offers canal views on warm days.`
+      },
+      {
+        id:7,
+        name:'Dagger Coffee',
+        coords:[52.0888,5.1210],
+        rating:4.6,
+        hours:'08:00 - 17:00',
+        phone:'Check website',
+        menu:'House espresso • Pastries',
+        video:'',
+        images:[
+          'https://source.unsplash.com/900x600/?coffee,barista',
+          'https://source.unsplash.com/900x600/?coffee,beans'
+        ],
+        desc:`Dagger is a small specialty roastery known for precision brewing. Cyclists who appreciate a perfectly pulled espresso often make Dagger a priority stop. The interior is calm and the staff are passionate about beans and technique.`
+      },
+      {
+        id:8,
+        name:'The Village Coffee & Music',
+        coords:[52.0944,5.1190],
+        rating:4.4,
+        hours:'09:00 - 18:00',
+        phone:'Check website',
+        menu:'Coffee • Light lunches • Pastries',
+        video:'',
+        images:[
+          'https://source.unsplash.com/900x600/?music,cafe',
+          'https://source.unsplash.com/900x600/?coffee,music'
+        ],
+        desc:`A creative hangout with music and coffee, The Village blends record-shop charm with a café menu. It’s perfect for riders who want a longer pause and a cultural stop, or for those whose route takes them through the city’s artistic neighborhoods.`
+      },
+      {
+        id:9,
+        name:"'t Oude Pothuys",
+        coords:[52.0896,5.1219],
+        rating:4.2,
+        hours:'11:00 - 22:00',
+        phone:'Check website',
+        menu:'Sandwiches • Lunch plates • Beers',
+        video:'',
+        images:[
+          'https://source.unsplash.com/900x600/?pub,canal',
+          'https://source.unsplash.com/900x600/?lunch,canal'
+        ],
+        desc:`A favorite for locals, 't Oude Pothuys is lively and often hosts live music. The canal-side terrace is charming and it serves more substantial food for riders who have worked up an appetite. It’s a social stop — great for group rides and evening meetups.`
+      },
+      {
+        id:10,
+        name:'Broei',
+        coords:[52.0875,5.1262],
+        rating:4.3,
+        hours:'08:30 - 17:00',
+        phone:'Check website',
+        menu:'Vegan pastries • Salads • Juices',
+        video:'',
+        images:[
+          'https://source.unsplash.com/900x600/?vegan,cafe',
+          'https://source.unsplash.com/900x600/?salad,cafe'
+        ],
+        desc:`Broei is a plant-filled neighborhood spot with a focus on vegetarian and vegan options. Riders on quieter city loops enjoy its fresh pastries and healthy bowls — it’s a calm, cozy place to refuel away from tourist crowds.`
+      },
+      {
+        id:11,
+        name:'De Proloog',
+        coords:[52.0419,5.5689],
+        rating:4.7,
+        hours:'09:00 - 18:00',
+        phone:'Check website',
+        menu:'Hearty lunches • Cakes • Coffee',
+        video:'',
+        images:[
+          'https://source.unsplash.com/900x600/?cycling,cafe',
+          'https://source.unsplash.com/900x600/?country,cafe'
+        ],
+        desc:`A well-known cycling café near Amerongen, De Proloog is a natural meeting point for riders tackling the Utrechtse Heuvelrug. It offers filling meals, robust coffee and ample bike parking — perfect for longer route stops and post-climb recuperation.`
+      },
+      {
+        id:12,
+        name:'Restaurant Vroeg',
+        coords:[52.0923,5.1765],
+        rating:4.6,
+        hours:'07:30 - 17:00',
+        phone:'Check website',
+        menu:'Breads • Breakfast plates • Salads',
+        video:'',
+        images:[
+          'https://source.unsplash.com/900x600/?bakery,breakfast',
+          'https://source.unsplash.com/900x600/?bread,cafe'
+        ],
+        desc:`Vroeg is a bakery-restaurant that draws cyclists to its warm, doughy scents and generous breakfast plates. It sits near green routes and makes for an ideal morning departure or a filling mid-ride stop.`
+      },
+      {
+        id:13,
+        name:'Parkcafé Ice Stop',
+        coords:[52.0791,5.1660],
+        rating:4.2,
+        hours:'11:00 - 19:00 (seasonal)',
+        phone:'Check website',
+        menu:'Ice cream • Cold drinks • Snacks',
+        video:'',
+        images:[
+          'https://source.unsplash.com/900x600/?icecream,park',
+          'https://source.unsplash.com/900x600/?summer,icecream'
+        ],
+        desc:`A seasonal favourite, the Parkcafé Ice Stop is perfect on hot days. Cyclists, families and walkers all queue for cooling treats — a bright and cheerful stop to break up longer green rides.`
+      },
+      {
+        id:14,
+        name:'Café Olivier',
+        coords:[52.0910,5.1251],
+        rating:4.4,
+        hours:'10:00 - 23:00',
+        phone:'Check website',
+        menu:'Belgian snacks • Fries • Lunch plates',
+        video:'',
+        images:[
+          'https://source.unsplash.com/900x600/?church,cafe',
+          'https://source.unsplash.com/900x600/?beer,cafe'
+        ],
+        desc:`Housed in a converted church, Café Olivier offers an atmospheric stop with hearty food and a wide beer selection. It’s a memorable place for riders who want to combine a scenic canal route with a substantial meal.`
+      },
+      {
+        id:15,
+        name:'OHØJ Coffee Roasting',
+        coords:[52.0872,5.1217],
+        rating:4.6,
+        hours:'08:00 - 17:00',
+        phone:'Check website',
+        menu:'Espresso • Filter coffee • Seasonal pastries',
+        video:'',
+        images:[
+          'https://source.unsplash.com/900x600/?coffee,roastery',
+          'https://source.unsplash.com/900x600/?espresso,barista'
+        ],
+        desc:`OHØJ is a neighbourhood roastery with a minimalist vibe — perfect for riders who take their coffee seriously. The space is compact but the brewing is precise, making it a top pick for a focused coffee break during urban loops.`
+      },
+      {
+        id:16,
+        name:'Cornelis / Koffie Leute Cluster',
+        coords:[52.0916,5.1218],
+        rating:4.5,
+        hours:'08:00 - 18:00',
+        phone:'Check website',
+        menu:'Specialty espresso • Pastries',
+        video:'',
+        images:[
+          'https://source.unsplash.com/900x600/?coffee,shop',
+          'https://source.unsplash.com/900x600/?barista,cafe'
+        ],
+        desc:`A little cluster of specialty cafés that work well as a mini coffee-crawl on city routes. Cornelis and nearby independents offer excellent short stops for riders who want variety and high-quality beans.`
+      },
+      {
+        id:17,
+        name:'Vredenburg Market',
+        coords:[52.0913,5.1170],
+        rating:4.3,
+        hours:'09:00 - 17:00 (market days)',
+        phone:'Check website',
+        menu:'Stroopwafels • Cheese • Breads',
+        video:'',
+        images:[
+          'https://source.unsplash.com/900x600/?market,food',
+          'https://source.unsplash.com/900x600/?streetfood,market'
+        ],
+        desc:`When the market is on, Vredenburg feels like a foodie’s paradise — temporary stalls selling stroopwafels, cheeses and local bread. It’s a great central option for weekend rides and cultural loops.`
+      },
+      {
+        id:18,
+        name:'Rocking Chair Café',
+        coords:[52.0965,5.1212],
+        rating:4.2,
+        hours:'09:00 - 18:00',
+        phone:'Check website',
+        menu:'Cakes • Tea • Coffee',
+        video:'',
+        images:[
+          'https://source.unsplash.com/900x600/?cake,cafe',
+          'https://source.unsplash.com/900x600/?coffee,relax'
+        ],
+        desc:`A relaxed neighborhood spot with homemade cakes and soft music. Rocking Chair is ideal for an afternoon pause and pairs well with routes that pass through Griftpark and the northern districts.`
       }
     ];
 
-    const cafeList = document.getElementById('cafe-list');
+    // Build menu list and cafe list (scrolling list layout)
     const menuList = document.getElementById('menuList');
+    const cafeList = document.getElementById('cafe-list');
 
-    STOPS.forEach(stop => {
-      const div = document.createElement('div');
-      div.className = 'cafe-section';
-      div.id = stop.name.replace(/\s+/g, '-');
-      div.innerHTML = `
-        <h2>${stop.name}</h2>
-        <p><strong>Rating:</strong> ${stop.rating} ⭐</p>
-        <p>${stop.description}</p>
-        <p><strong>Opening Hours:</strong> ${stop.hours}</p>
-        <p><strong>Phone:</strong> ${stop.phone}</p>
-        <img src="${stop.images[0]}" alt="${stop.name}">
-        <iframe src="${stop.video}"></iframe>
+    STOPS.forEach(stop=>{
+      // menu link
+      const a = document.createElement('a');
+      a.href = `#stop-${stop.id}`;
+      a.textContent = stop.name;
+      a.onclick = ()=>{toggleMenu();};
+      menuList.appendChild(a);
+
+      // cafe section
+      const sec = document.createElement('section');
+      sec.className = 'cafe-section';
+      sec.id = `stop-${stop.id}`;
+      sec.innerHTML = `
+        <div class="cafe-main">
+          <h2>${stop.name}</h2>
+          <div class="meta">Rating: ${stop.rating} ⭐ &nbsp; • &nbsp; Hours: ${stop.hours}</div>
+          <p style="margin-top:10px;color:var(--muted)">${stop.desc}</p>
+          <p style="margin-top:8px"><strong>Menu highlights:</strong> ${stop.menu}</p>
+          <p style="margin-top:6px"><strong>Phone:</strong> ${stop.phone}</p>
+        </div>
+        <aside class="cafe-media">
+          <div class="media-slider" data-id="${stop.id}">
+            <div class="slides">
+              ${stop.images.map(img=>`<div class="slide"><img src="${img}" alt="${stop.name}"></div>`).join('')}
+              ${stop.video?`<div class="slide"><iframe src="${stop.video}" allow="autoplay; encrypted-media" allowfullscreen></iframe></div>`:''}
+            </div>
+            <div class="slider-nav">
+              <button class="nav-btn prev" data-id="${stop.id}">❮</button>
+              <button class="nav-btn next" data-id="${stop.id}">❯</button>
+            </div>
+          </div>
+        </aside>
       `;
-      cafeList.appendChild(div);
-
-      const link = document.createElement('a');
-      link.href = `#${div.id}`;
-      link.textContent = stop.name;
-      menuList.appendChild(link);
+      cafeList.appendChild(sec);
     });
 
-    const map = L.map('map').setView([52.0907, 5.1214], 12);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap'
-    }).addTo(map);
+    // Simple slider logic (works per slider instance)
+    document.querySelectorAll('.media-slider').forEach(slider=>{
+      const slides = slider.querySelectorAll('.slide');
+      let index = 0;
+      function show(i){
+        if(i<0) i=slides.length-1; if(i>=slides.length) i=0; index=i;
+        const inner = slider.querySelector('.slides');
+        inner.style.transform = `translateX(-${index*100}%)`;
+        // pause any iframe video when slide changes
+        slider.querySelectorAll('iframe').forEach((f,fi)=>{ f.src = f.src; });
+      }
+      slider.querySelector('.next').addEventListener('click',()=>show(index+1));
+      slider.querySelector('.prev').addEventListener('click',()=>show(index-1));
+      // initialize
+      show(0);
+    });
 
-    STOPS.forEach(stop => {
+    // Initialize map
+    const map = L.map('map').setView([52.0907,5.1214], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);
+
+    // mini hover card
+    const miniCard = document.getElementById('miniCard');
+    const miniTitle = document.getElementById('miniTitle');
+    const miniDesc = document.getElementById('miniDesc');
+
+    STOPS.forEach(stop=>{
       const marker = L.marker(stop.coords).addTo(map);
-      marker.on('click', () => openCard(stop));
+      marker.on('mouseover', e=>{
+        miniTitle.textContent = stop.name; miniDesc.textContent = stop.desc.slice(0,120)+'...';
+        miniCard.style.display = 'block';
+        const pos = map.latLngToContainerPoint(e.latlng);
+        miniCard.style.left = (pos.x + 20) + 'px';
+        miniCard.style.top = (pos.y - 60) + 'px';
+      });
+      marker.on('mousemove', e=>{
+        const pos = map.latLngToContainerPoint(e.latlng);
+        miniCard.style.left = (pos.x + 20) + 'px';
+        miniCard.style.top = (pos.y - 60) + 'px';
+      });
+      marker.on('mouseout', ()=>{ miniCard.style.display='none'; });
+      marker.on('click', ()=>{
+        // show bottom info popup with full details and open slider to first
+        document.getElementById('popupTitle').textContent = stop.name;
+        document.getElementById('popupMeta').textContent = `Rating: ${stop.rating} ⭐ • Hours: ${stop.hours}`;
+        const body = document.getElementById('popupBody');
+        body.innerHTML = `<p style="color:var(--muted)">${stop.desc}</p><p><strong>Menu:</strong> ${stop.menu}</p><p><strong>Phone:</strong> ${stop.phone}</p>`;
+        document.getElementById('infoPopup').style.display='block';
+        // scroll to map
+        window.scrollTo({top: document.getElementById('map-section').offsetTop - 20, behavior:'smooth'});
+      });
     });
 
-    function toggleMenu() {
-      const menu = document.getElementById('menuList');
-      menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-    }
+    function closeInfo(){ document.getElementById('infoPopup').style.display='none'; }
 
-    function openCard(stop) {
-      const card = document.getElementById('infoCard');
-      card.style.display = 'flex';
-      document.getElementById('placeName').textContent = stop.name;
-      document.getElementById('ratingStars').textContent = `⭐ ${stop.rating}`;
-      document.getElementById('hours').textContent = `⏰ ${stop.hours}`;
-      document.getElementById('description').textContent = stop.description;
-      document.getElementById('phone').textContent = stop.phone;
-      document.getElementById('videoFrame').src = stop.video;
-    }
+    function toggleMenu(){ const m = document.getElementById('menuList'); m.style.display = m.style.display==='block'?'none':'block'; }
 
-    function closeCard() {
-      const card = document.getElementById('infoCard');
-      card.style.display = 'none';
-      document.getElementById('videoFrame').src = '';
-    }
+    // click a menu link scrolls to section via default anchor behavior
+
+    // Accessibility: close menu on outside click
+    document.addEventListener('click', (e)=>{ const menu = document.querySelector('.menu'); if(!e.target.closest('.menu')) document.getElementById('menuList').style.display='none'; });
+
+    // Smooth scroll for internal links
+    document.querySelectorAll('a[href^="#stop-"]').forEach(a=>a.addEventListener('click', (ev)=>{ ev.preventDefault(); const id = a.getAttribute('href').slice(1); document.getElementById(id).scrollIntoView({behavior:'smooth',block:'start'}); }));
+
   </script>
 </body>
 </html>
