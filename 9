@@ -1,0 +1,30 @@
+import fs from 'fs'
+import path from 'path'
+import matter from 'gray-matter'
+import md from 'markdown-it'
+
+const stopsDir = path.join(process.cwd(), 'stops')
+
+export function getStopSlugs() {
+  return fs.readdirSync(stopsDir).map(file => file.replace(/\.md$/, ''))
+}
+
+export async function getStopBySlug(slug) {
+  const fullPath = path.join(stopsDir, `${slug}.md`)
+  const file = fs.readFileSync(fullPath, 'utf8')
+  const { data, content } = matter(file)
+  return {
+    slug,
+    frontmatter: data,
+    html: md().render(content),
+  }
+}
+
+export async function getAllStops() {
+  const slugs = getStopSlugs()
+  const stops = await Promise.all(slugs.map(async s => {
+    const { frontmatter } = await getStopBySlug(s)
+    return { slug: s, ...frontmatter }
+  }))
+  return stops.sort((a, b) => a.name.localeCompare(b.name))
+}
