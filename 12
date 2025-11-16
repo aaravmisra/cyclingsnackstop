@@ -1,0 +1,23 @@
+import { useEffect, useState } from 'react'
+
+export default function Favourite({ slug }) {
+  const [liked, setLiked] = useState(false)
+
+  useEffect(() => {
+    const likes = JSON.parse(localStorage.getItem('fav') || '[]')
+    setLiked(likes.includes(slug))
+  }, [slug])
+
+  const toggle = () => {
+    const likes = JSON.parse(localStorage.getItem('fav') || '[]')
+    const next = liked ? likes.filter(s => s !== slug) : [...likes, slug]
+    localStorage.setItem('fav', JSON.stringify(next))
+    setLiked(!liked)
+  }
+
+  return (
+    <button onClick={toggle} className="text-2xl">
+      {liked ? '❤️' : '🤍'}
+    </button>
+  )
+}
