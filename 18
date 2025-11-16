@@ -1,0 +1,19 @@
+import Layout from '@/components/Layout'
+import Map from '@/components/Map'
+import { getAllStops } from '@/lib/stops'
+
+export async function getStaticProps() {
+  const stops = await getAllStops()
+  return { props: { stops } }
+}
+
+export default function FullMap({ stops }) {
+  return (
+    <Layout title="Full map">
+      <div className="h-screen flex flex-col">
+        <h1 className="px-4 py-3 text-xl font-bold bg-white shadow">All stops</h1>
+        <Map stops={stops} height="100%" />
+      </div>
+    </Layout>
+  )
+}
