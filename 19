@@ -1,0 +1,50 @@
+import Layout from '@/components/Layout'
+import Favourite from '@/components/Favourite'
+import { getStopBySlug, getStopSlugs } from '@/lib/stops'
+
+export async function getStaticPaths() {
+  const slugs = getStopSlugs()
+  return {
+    paths: slugs.map(s => ({ params: { slug: s } })),
+    fallback: false,
+  }
+}
+
+export async function getStaticProps({ params }) {
+  const stop = await getStopBySlug(params.slug)
+  return { props: { stop } }
+}
+
+export default function StopPage({ stop }) {
+  const { frontmatter, html } = stop
+  return (
+    <Layout title={frontmatter.name}>
+      <article className="max-w-3xl mx-auto p-4">
+        <div className="flex justify-between items-start">
+          <h1 className="text-3xl font-bold">{frontmatter.name}</h1>
+          <Favourite slug={stop.slug} />
+        </div>
+        <p className="text-gray-600 mt-2">{frontmatter.address} · {frontmatter.hours}</p>
+        <img
+          src={frontmatter.cover}
+          alt={frontmatter.name}
+          className="mt-4 w-full h-64 object-cover rounded"
+        />
+        <div
+          className="prose mt-6"
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+        <div className="mt-6">
+          <a
+            href={`https://www.google.com/maps?q=${frontmatter.coords.join(',')}`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-block bg-emerald-600 text-white px-4 py-2 rounded"
+          >
+            Open in Google Maps →
+          </a>
+        </div>
+      </article>
+    </Layout>
+  )
+}
