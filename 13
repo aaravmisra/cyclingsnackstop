@@ -1,0 +1,23 @@
+import Link from 'next/link'
+import Favourite from './Favourite'
+
+export default function StopCard({ stop }) {
+  return (
+    <div className="bg-white rounded-xl shadow hover:shadow-lg transition">
+      <img
+        src={stop.cover}
+        alt={stop.name}
+        className="h-40 w-full object-cover rounded-t-xl"
+      />
+      <div className="p-4 flex justify-between items-start">
+        <div>
+          <Link href={`/stops/${stop.slug}`}>
+            <h3 className="font-bold text-lg hover:underline">{stop.name}</h3>
+          </Link>
+          <p className="text-sm text-gray-600">{stop.vibe}</p>
+        </div>
+        <Favourite slug={stop.slug} />
+      </div>
+    </div>
+  )
+}
