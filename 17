@@ -1,0 +1,41 @@
+import Layout from '@/components/Layout'
+import StopCard from '@/components/StopCard'
+import FilterBar from '@/components/FilterBar'
+import Map from '@/components/Map'
+import { getAllStops } from '@/lib/stops'
+import { useState } from 'react'
+
+export async function getStaticProps() {
+  const stops = await getAllStops()
+  return { props: { stops } }
+}
+
+export default function Home({ stops }) {
+  const [filter, setFilter] = useState(null)
+
+  const filtered = filter
+    ? stops.filter(s => filter.every(t => s.tags.includes(t)))
+    : stops
+
+  return (
+    <Layout>
+      <header className="px-4 py-6 bg-emerald-600 text-white">
+        <h1 className="text-3xl font-bold">The Perfect Cycling Stops in Utrecht</h1>
+        <p className="mt-2">19 curated cafés, snacks & views – every cyclist’s map.</p>
+      </header>
+
+      <FilterBar setter={setFilter} />
+
+      <section className="p-4">
+        <h2 className="text-xl font-semibold mb-3">Map</h2>
+        <Map stops={filtered} />
+      </section>
+
+      <section className="p-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {filtered.map(s => (
+          <StopCard key={s.slug} stop={s} />
+        ))}
+      </section>
+    </Layout>
+  )
+}
